@@ -1,0 +1,47 @@
+name: Deploy terraform folder
+description: Deploy terraform folder using AWS validations
+author: André Buchmann
+
+inputs:
+  terraform_path:
+    description: Path to the Terraform folder.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE }}
+          aws-region: sa-east-1
+          role-session-name: terraform-deploy-${{ github.repository }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.6
+
+    - name: Initialize Terraform
+      run: terraform init
+      working-directory: ${{ inputs.terraform_workspace_path }}
+
+    - name: Validate Terraform
+      run: terraform validate
+      working-directory: ${{ inputs.terraform_workspace_path }}
+
+    - name: Plan Terraform
+      run: |
+        terraform plan -out=tfplan.binary
+        terraform show -json tfplan.binary > tfplan.json
+      working-directory: ${{ inputs.terraform_workspace_path }}
+
+    - name: Validate IAM Role Policies
+      uses: androzo/aws-validation@main
+      with:
+        tfplan_path: ${{ inputs.terraform_workspace_path }}/tfplan.json
+      timeout-minutes: 2
+
+    - name: Apply Terraform
+      run: terraform apply -auto-approve tfplan.binary
+      working-directory: ${{ inputs.terraform_workspace_path }}
