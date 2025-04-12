@@ -13,12 +13,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Get repo
+      run: |
+        repo_name=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+        echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
+      shell: bash
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.role_arn }}
         aws-region: sa-east-1
-        role-session-name: terraform-deploy-${{ github.repository }}
+        role-session-name: terraform-deploy-${{ env.REPO_NAME }}
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
