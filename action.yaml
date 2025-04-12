@@ -6,6 +6,9 @@ inputs:
   terraform_path:
     description: Path to the Terraform folder.
     required: true
+  role_arn:
+    description: AWS role that will be assumed to deploy.
+    required: true
 
 runs:
   using: "composite"
@@ -13,7 +16,7 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE }}
+        role-to-assume: ${{ inputs.role_arn }}
         aws-region: sa-east-1
         role-session-name: terraform-deploy-${{ github.repository }}
 
@@ -25,16 +28,19 @@ runs:
     - name: Initialize Terraform
       run: terraform init
       working-directory: ${{ inputs.terraform_workspace_path }}
+      shell: bash
 
     - name: Validate Terraform
       run: terraform validate
       working-directory: ${{ inputs.terraform_workspace_path }}
+      shell: bash
 
     - name: Plan Terraform
       run: |
         terraform plan -out=tfplan.binary
         terraform show -json tfplan.binary > tfplan.json
       working-directory: ${{ inputs.terraform_workspace_path }}
+      shell: bash
 
     - name: Validate IAM Role Policies
       uses: androzo/aws-validation@main
@@ -45,3 +51,4 @@ runs:
     - name: Apply Terraform
       run: terraform apply -auto-approve tfplan.binary
       working-directory: ${{ inputs.terraform_workspace_path }}
+      shell: bash
