@@ -47,9 +47,7 @@ runs:
       shell: bash    
       
     - name: Save tfplan to Terraform
-      run: | 
-        terraform show -json tfplan.binary > tfplan.json
-        cat tfplan.json | jq -r '.resource_changes[].[0]'
+      run: terraform show -json tfplan.binary > tfplan.json
       working-directory: ${{ inputs.terraform_path }}
       shell: bash
 
