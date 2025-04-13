@@ -46,8 +46,11 @@ runs:
       working-directory: ${{ inputs.terraform_path }}
       shell: bash    
       
-    - name: Save tfplan to json
-      run: terraform show -json tfplan.binary > tfplan.json
+    - name: Save tfplan to Terraform
+      run: |
+        {
+          terraform show -json tfplan.binary > tfplan.json
+        }
       working-directory: ${{ inputs.terraform_path }}
       shell: bash
 
