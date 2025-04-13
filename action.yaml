@@ -49,7 +49,16 @@ runs:
     - name: Save tfplan to Terraform
       run: 
         terraform show -json tfplan.binary > tfplan.raw
-        grep -E '^[[:space:]]*{' tfplan.raw > tfplan.json
+      working-directory: ${{ inputs.terraform_path }}
+      shell: bash
+
+    - name: Parse tfplan to JSON
+      run: grep -E '^[[:space:]]*{' tfplan.raw > tfplan.json
+      working-directory: ${{ inputs.terraform_path }}
+      shell: bash
+
+    - name: Fail if tfplan is empty
+      run: |
         jq empty tfplan.json
       working-directory: ${{ inputs.terraform_path }}
       shell: bash
