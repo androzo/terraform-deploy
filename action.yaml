@@ -47,7 +47,10 @@ runs:
       shell: bash    
       
     - name: Save tfplan to Terraform
-      run: terraform show -json tfplan.binary > tfplan.json
+      run: 
+        terraform show -json tfplan.binary > tfplan.raw
+        grep -E '^[[:space:]]*{' tfplan.raw > tfplan.json
+        jq empty tfplan.json
       working-directory: ${{ inputs.terraform_path }}
       shell: bash
 
